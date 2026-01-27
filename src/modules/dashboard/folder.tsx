@@ -14,17 +14,7 @@ import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useFolderStructure } from "./hooks/use-folder-structure";
 
-export const Folder = ({
-  name,
-  id,
-  parentPath,
-  path,
-}: {
-  parentPath: string;
-  path: string;
-  name: string;
-  id: number;
-}) => {
+export const Folder = ({ name, id, path }: { path: string; name: string; id: number }) => {
   const folderStructure = useFolderStructure();
   const url = path.replace(/^\/+|\/+$/g, "");
 

@@ -33,7 +33,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
     });
   });
   const loginWithGithub = async () => {
-    const data = await authClient.signIn.social({
+    await authClient.signIn.social({
       provider: "github",
       callbackURL: window.location.origin,
     });
