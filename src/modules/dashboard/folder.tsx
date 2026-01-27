@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { RiFolder2Fill } from "@remixicon/react";
 import { useMutation } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useFolderStructure } from "./hooks/use-folder-structure";
 
@@ -21,6 +21,9 @@ export const Folder = ({ name, id, path }: { path: string; name: string; id: num
   const [isRenaming, setIsRenaming] = useState(false);
   const [newName, setNewName] = useState(name);
   const renameRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const navigate = useNavigate();
+
   const deleteFolder = useMutation({
     mutationFn: async () => {
       await FilesAPI.deleteFile(id);
@@ -38,11 +41,27 @@ export const Folder = ({ name, id, path }: { path: string; name: string; id: num
     },
   });
 
+  const openFolder = () => {
+    if (isRenaming || deleteFolder.isPending) {
+      return;
+    }
+    navigate({
+      to: "/dashboard/$",
+      params: { _splat: url },
+    });
+  };
+
   useEffect(() => {
     if (!isRenaming) return;
 
+    const timeoutId = setTimeout(() => {
+      inputRef.current?.focus();
+      inputRef.current?.select();
+    }, 0);
+
     const handleClickOutside = (event: MouseEvent) => {
       if (renameRef.current && !renameRef.current.contains(event.target as Node)) {
+        setNewName(name);
         setIsRenaming(false);
       }
     };
@@ -50,6 +69,7 @@ export const Folder = ({ name, id, path }: { path: string; name: string; id: num
     document.addEventListener("mousedown", handleClickOutside);
 
     return () => {
+      clearTimeout(timeoutId);
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isRenaming]);
@@ -57,27 +77,26 @@ export const Folder = ({ name, id, path }: { path: string; name: string; id: num
   return (
     <ContextMenu>
       <ContextMenuTrigger>
-        <Link
-          to="/dashboard/$"
-          onClick={(e) => {
-            if (isRenaming || deleteFolder.isPending) {
-              e.preventDefault();
-              return;
-            }
-          }}
-          params={{ _splat: url }}
-          className="flex flex-col items-start  w-fit"
+        <div
+          tabIndex={isRenaming ? undefined : 1}
+          onDoubleClick={openFolder}
+          className={cn(
+            "flex flex-col items-start  w-20  group  p-1",
+            !isRenaming && "focus:ring ring-primary focus:bg-secondary hover:bg-muted",
+          )}
         >
-          <RiFolder2Fill className={cn("w-16 h-16", deleteFolder.isPending && "animate-pulse")} />
+          <RiFolder2Fill className={cn("w-16 h-16 ", deleteFolder.isPending && "animate-pulse")} />
           {isRenaming ? (
             <div ref={renameRef}>
               <Input
+                ref={inputRef}
                 className="h-6"
                 type="text"
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") {
+                  console.log(e.key);
+                  if (e.key === "Enter" || e.key === "Escape") {
                     e.preventDefault();
                     e.stopPropagation();
                     updateFile.mutate();
@@ -87,9 +106,11 @@ export const Folder = ({ name, id, path }: { path: string; name: string; id: num
               />
             </div>
           ) : (
-            <span className={cn("text-sm", updateFile.isPending && "animate-pulse")}>{name}</span>
+            <span className={cn("text-xs truncate ", updateFile.isPending && "animate-pulse")}>
+              {name.length > 6 ? name.slice(0, 6) + "..." : name}
+            </span>
           )}
-        </Link>
+        </div>
       </ContextMenuTrigger>
       <ContextMenuContent>
         <ContextMenuItem asChild>
@@ -97,7 +118,13 @@ export const Folder = ({ name, id, path }: { path: string; name: string; id: num
             Open
           </Link>
         </ContextMenuItem>
-        <ContextMenuItem onClick={() => setIsRenaming(true)}>Rename</ContextMenuItem>
+        <ContextMenuItem
+          onClick={() => {
+            setIsRenaming(true);
+          }}
+        >
+          Rename
+        </ContextMenuItem>
         <ContextMenuItem variant="destructive" onClick={() => deleteFolder.mutate()}>
           Delete
         </ContextMenuItem>

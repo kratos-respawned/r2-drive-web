@@ -7,12 +7,26 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
-import { RiArrowDropUpLine, RiFolder3Fill } from "@remixicon/react";
-import { useParams } from "@tanstack/react-router";
+import { RiFileUploadLine, RiFolder3Fill } from "@remixicon/react";
+import { useRef } from "react";
+import { useFileUpload } from "./hooks/use-file-upload";
 
 export const EmptyFolder = () => {
-  const { _splat } = useParams({ from: "/dashboard/$" });
-  console.log(_splat);
+  const { upload, isUploading } = useFileUpload();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleUploadFile = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files && files.length > 0) {
+      upload(files);
+    }
+    event.target.value = "";
+  };
+
   return (
     <Empty className="min-h-[80svh]">
       <EmptyHeader>
@@ -25,9 +39,16 @@ export const EmptyFolder = () => {
         </EmptyDescription>
       </EmptyHeader>
       <EmptyContent>
-        <Button variant="outline">
-          <RiArrowDropUpLine />
-          Upload File
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleFileChange}
+          multiple
+          className="hidden"
+        />
+        <Button variant="outline" onClick={handleUploadFile} disabled={isUploading}>
+          <RiFileUploadLine />
+          {isUploading ? "Uploading..." : "Upload File"}
         </Button>
       </EmptyContent>
     </Empty>

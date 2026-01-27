@@ -1,6 +1,7 @@
 import { FilesAPI } from "@/api/files/api";
 import { queryClient } from "@/App";
 import { Button } from "@/components/ui/button";
+import { ButtonGroup } from "@/components/ui/button-group";
 import {
   Dialog,
   DialogClose,
@@ -10,18 +11,54 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
-import { RiFolderAddLine } from "@remixicon/react";
+import { RiArrowDownLine, RiFileUploadLine, RiFolderAddLine } from "@remixicon/react";
 import { useMutation } from "@tanstack/react-query";
-import { useState } from "react";
+
+import { useRef, useState } from "react";
+import { useFileUpload } from "./hooks/use-file-upload";
 import { useFolderStructure } from "./hooks/use-folder-structure";
 
 export const NewFolder = () => {
   const folderStructure = useFolderStructure();
   const [newFolderName, setNewFolderName] = useState("");
   const [isOpen, setIsOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const folderInputRef = useRef<HTMLInputElement>(null);
+  const { upload, isUploading } = useFileUpload();
+
+  const handleFileUpload = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFolderUpload = () => {
+    folderInputRef.current?.click();
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files && files.length > 0) {
+      upload(files);
+    }
+    event.target.value = "";
+  };
+
+  const handleFolderChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files && files.length > 0) {
+      upload(files);
+    }
+    event.target.value = "";
+  };
+
   const { mutate: createFolder, isPending } = useMutation({
     mutationFn: async () => {
       await FilesAPI.createFolder({
@@ -37,10 +74,47 @@ export const NewFolder = () => {
   });
   return (
     <>
-      <Button disabled={isPending} onClick={() => setIsOpen(true)}>
-        {isPending ? <Spinner /> : <RiFolderAddLine />}
-        New Folder
-      </Button>
+      <ButtonGroup>
+        <Button disabled={isPending} onClick={() => setIsOpen(true)} className="!pl-2">
+          {isPending ? <Spinner /> : <RiFolderAddLine />}
+          New Folder
+        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button className="!pl-2">
+              <RiArrowDownLine />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-44">
+            <DropdownMenuItem onClick={handleFileUpload} disabled={isUploading}>
+              <RiFileUploadLine />
+              File Upload
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleFolderUpload} disabled={isUploading}>
+              <RiFolderAddLine />
+              Folder Upload
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </ButtonGroup>
+
+      {/* Hidden file inputs */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        multiple
+        className="hidden"
+      />
+      <input
+        type="file"
+        ref={folderInputRef}
+        onChange={handleFolderChange}
+        // @ts-expect-error webkitdirectory is not in the type definitions
+        webkitdirectory=""
+        className="hidden"
+      />
+
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <form
