@@ -1,6 +1,6 @@
 import { FilesAPI } from "@/api/files/api";
 import { EmptyFolder } from "@/modules/dashboard/empty-folder";
-import { Folder } from "@/modules/dashboard/folder";
+import { FileView } from "@/modules/dashboard/files";
 import { useFolderStructure } from "@/modules/dashboard/hooks/use-folder-structure";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
@@ -23,7 +23,7 @@ function RouteComponent() {
     <>
       <div className="flex flex-wrap gap-4 px-6 py-2">
         {data?.items.map((file) => (
-          <Folder path={file.path} id={file.id} key={file.id} name={file.name} />
+          <FileView file={file} key={file.id} />
         ))}
       </div>
     </>

@@ -23,17 +23,24 @@ import { Spinner } from "@/components/ui/spinner";
 import { RiArrowDownLine, RiFileUploadLine, RiFolderAddLine } from "@remixicon/react";
 import { useMutation } from "@tanstack/react-query";
 
+import { Progress } from "@/components/ui/progress";
 import { useRef, useState } from "react";
+import { toast } from "sonner";
 import { useFileUpload } from "./hooks/use-file-upload";
 import { useFolderStructure } from "./hooks/use-folder-structure";
 
 export const NewFolder = () => {
   const folderStructure = useFolderStructure();
+  const { upload, isUploading, progress, reset } = useFileUpload({
+    parentPath: folderStructure,
+    onError: (error) => {
+      toast.error(error);
+    },
+  });
   const [newFolderName, setNewFolderName] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
-  const { upload, isUploading } = useFileUpload();
 
   const handleFileUpload = () => {
     fileInputRef.current?.click();
@@ -45,19 +52,42 @@ export const NewFolder = () => {
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
-    if (files && files.length > 0) {
-      upload(files);
-    }
+    const file = files?.[0];
+    if (!file) return;
+    toast.promise(() => upload(file), {
+      loading: (
+        <div className=" flex flex-col gap-1">
+          Uploading {file.name}
+          <Progress value={progress} className="w-full h-2" />
+        </div>
+      ),
+      action: (
+        <Button variant="destructive" onClick={reset}>
+          Cancel
+        </Button>
+      ),
+      classNames: {
+        content: "flex-1",
+      },
+    });
     event.target.value = "";
   };
 
-  const handleFolderChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (files && files.length > 0) {
-      upload(files);
-    }
-    event.target.value = "";
-  };
+  // const handleFolderChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  //   const files = event.target.files;
+  //   const file = files?.[0];
+  //   if (!file) return;
+  //   toast.promise(() => upload(file), {
+  //     loading: (
+  //       <div className=" flex flex-col gap-1">
+  //         Uploading {file.name}
+  //         <Progress value={progress} className="w-full h-2" />
+  //       </div>
+  //     ),
+  //   });
+  //   }
+  //   event.target.value = "";
+  // };
 
   const { mutate: createFolder, isPending } = useMutation({
     mutationFn: async () => {
@@ -109,7 +139,7 @@ export const NewFolder = () => {
       <input
         type="file"
         ref={folderInputRef}
-        onChange={handleFolderChange}
+        onChange={handleFileChange}
         // @ts-expect-error webkitdirectory is not in the type definitions
         webkitdirectory=""
         className="hidden"

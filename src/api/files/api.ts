@@ -21,11 +21,12 @@ import type {
   CreateFileRequest,
   CreateFolderRequest,
   FileObject,
+  GetFileUrlResponse,
   GetUploadUrlRequest,
   GetUploadUrlResponse,
   ListFilesResponse,
   SuccessResponse,
-  UpdateFileRequest,
+  UpdateFileRequest
 } from "./dto";
 
 export type UploadProgressCallback = (progress: AxiosProgressEvent) => void;
@@ -51,11 +52,14 @@ export class FilesAPI {
   /**
    * Get a presigned URL for uploading a file to R2
    * @param request - Upload URL request parameters
+   * @param signal - Optional abort signal
    * @returns Promise resolving to the presigned URL and key
    */
   static async getUploadUrl(
-    request: GetUploadUrlRequest
+    request: GetUploadUrlRequest,
+    signal?: AbortSignal
   ): Promise<GetUploadUrlResponse> {
+
     const response = await apiClient.post<GetUploadUrlResponse>(
       "/api/files/upload-url",
       {
@@ -63,7 +67,8 @@ export class FilesAPI {
         contentType: request.contentType,
         size: request.size,
         parentPath: request.parentPath ?? "",
-      }
+      },
+      signal ? { signal: signal } : undefined
     );
     return response.data;
   }
@@ -73,12 +78,14 @@ export class FilesAPI {
    * @param uploadUrl - The presigned URL from getUploadUrl
    * @param file - The File object to upload
    * @param onUploadProgress - Optional callback for upload progress
+   * @param signal - Optional abort signal
    * @returns Promise resolving when upload is complete
    */
   static async uploadFile(
     uploadUrl: string,
     file: File,
-    onUploadProgress?: UploadProgressCallback
+    onUploadProgress?: UploadProgressCallback,
+    signal?: AbortSignal
   ): Promise<void> {
     await apiClient.put(uploadUrl, file, {
       headers: {
@@ -86,6 +93,7 @@ export class FilesAPI {
       },
       withCredentials: false,
       onUploadProgress,
+      ...(signal ? { signal: signal } : undefined),
     });
   }
 
@@ -94,7 +102,7 @@ export class FilesAPI {
    * @param request - File creation request parameters
    * @returns Promise resolving to the created file object
    */
-  static async createFile(request: CreateFileRequest): Promise<FileObject> {
+  static async createFile(request: CreateFileRequest, signal?: AbortSignal): Promise<FileObject> {
     const response = await apiClient.post<FileObject>("/api/files", {
       key: request.key,
       name: request.name,
@@ -102,7 +110,7 @@ export class FilesAPI {
       size: request.size,
       parentPath: request.parentPath ?? "",
       thumbnail: request.thumbnail ?? null,
-    });
+    }, signal ? { signal: signal } : undefined);
     return response.data;
   }
 
@@ -118,7 +126,8 @@ export class FilesAPI {
     file: File,
     parentPath?: string,
     thumbnail?: string | null,
-    onUploadProgress?: UploadProgressCallback
+    onUploadProgress?: UploadProgressCallback,
+    signal?: AbortSignal
   ): Promise<FileObject> {
     // Step 1: Get presigned URL
     const { url, key } = await this.getUploadUrl({
@@ -126,10 +135,10 @@ export class FilesAPI {
       contentType: file.type,
       size: file.size,
       parentPath,
-    });
+    }, signal);
 
     // Step 2: Upload to R2
-    await this.uploadFile(url, file, onUploadProgress);
+    await this.uploadFile(url, file, onUploadProgress, signal);
 
     // Step 3: Create file record
     return this.createFile({
@@ -139,7 +148,7 @@ export class FilesAPI {
       size: file.size,
       parentPath,
       thumbnail,
-    });
+    }, signal);
   }
 
   /**
@@ -168,6 +177,16 @@ export class FilesAPI {
         parentPath: request.parentPath,
       }
     );
+    return response.data;
+  }
+
+  /**
+   * 
+   * @param id The file ID
+   * @returns Promise resolving to the file URL
+   */
+  static async getFileUrl(id: number): Promise<GetFileUrlResponse> {
+    const response = await apiClient.get<GetFileUrlResponse>(`/api/files/${id}`);
     return response.data;
   }
 
