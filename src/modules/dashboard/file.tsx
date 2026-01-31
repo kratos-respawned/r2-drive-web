@@ -91,13 +91,13 @@ export const GenericFile = ({
         <div
           tabIndex={isRenaming ? undefined : 1}
           className={cn(
-            "group relative aspect-square border border-black dark:border-white p-4 flex flex-col justify-between bg-white dark:bg-zinc-900 hover:bg-orange-50 dark:hover:bg-zinc-800 transition-all cursor-pointer hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[6px_6px_0px_0px_rgba(255,255,255,1)] hover:-translate-y-1",
+            "group w-[164px] h-[173px] relative aspect-square border border-black dark:border-white p-4 flex flex-col justify-between bg-white dark:bg-zinc-900 hover:bg-orange-50 dark:hover:bg-zinc-800 transition-all cursor-pointer hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[6px_6px_0px_0px_rgba(255,255,255,1)] hover:-translate-y-1",
           )}
         >
           <div className="flex justify-center items-center grow">
             {getFileIconFromFileType(type, {
               className: cn(
-                " text-primary drop-shadow-md size-20 ",
+                "  drop-shadow-md size-20 ",
                 deleteFile.isPending ? "animate-pulse" : "",
               ),
             })}

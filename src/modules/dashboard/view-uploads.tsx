@@ -80,7 +80,7 @@ export const NewFolder = () => {
     <>
       <ButtonGroup>
         <Button className="pl-2!" asChild>
-          <Link to="/dashboard/uploads">
+          <Link to="/uploads">
             <RiUploadCloudFill />
             View Uploads
           </Link>

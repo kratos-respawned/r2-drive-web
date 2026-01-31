@@ -7,7 +7,7 @@ export function UploadRow({ actor }: { actor: UploadActorRef }) {
 
   return (
     <div className="upload-row">
-      <div>{upload.state.context.name}</div>
+      <div>{upload.name}</div>
 
       <Progress value={upload.progress} max={100} />
 

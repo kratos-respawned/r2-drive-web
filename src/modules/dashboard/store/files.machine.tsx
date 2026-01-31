@@ -75,7 +75,7 @@ export const createUploadMachine = () => {
     context: ({ input }) => ({
       id: input.id,
       name: input.name,
-      contentType: input.docType,
+      contentType: input.contentType,
       file: input.file,
       uploadProgress: 0,
       parentPath: input.parentPath,

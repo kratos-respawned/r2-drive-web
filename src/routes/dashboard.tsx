@@ -1,6 +1,5 @@
 import { Header } from "@/components/header";
 import { FsBreadcrumbs } from "@/modules/dashboard/fs-breadcrumbs";
-import { UploadManagerRoot } from "@/modules/dashboard/uploadManagerRoot";
 import { NewFolder } from "@/modules/dashboard/view-uploads";
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 
@@ -11,7 +10,6 @@ export const Route = createFileRoute("/dashboard")({
 function DashboardLayout() {
   return (
     <>
-      <UploadManagerRoot />
       <div className="grid grid-rows-[auto_1fr_auto] h-screen">
         <div className="pb-6">
           <Header />

@@ -7,6 +7,7 @@ export const useFolderStructure = () => {
     throw new Error("Path is not a dashboard path");
   }
   pathnameParts.shift();
+
   const newPath = pathnameParts.join("/");
   console.log({ newPath });
   return newPath;

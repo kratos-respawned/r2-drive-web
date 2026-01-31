@@ -3,9 +3,10 @@ import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { RedirectToNotFound } from "./components/redirect";
 import { Toaster } from "./components/ui/sonner";
 import { queryClient } from "./lib/query";
+import { UploadManagerRoot } from "./modules/dashboard/uploadManagerRoot";
 import { routeTree } from "./routeTree.gen";
 
-const router = createRouter({
+export const router = createRouter({
   routeTree,
   defaultPreload: "intent",
   scrollRestoration: true,
@@ -22,6 +23,7 @@ declare module "@tanstack/react-router" {
 export function App() {
   return (
     <QueryClientProvider client={queryClient}>
+      <UploadManagerRoot />
       <RouterProvider router={router} />
       <Toaster visibleToasts={5} />
     </QueryClientProvider>

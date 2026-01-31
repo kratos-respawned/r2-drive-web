@@ -62,8 +62,9 @@ export type UploadMachineState =
 export interface UploadMachineInput {
     id: string;
     name: string;
-    docType: string;
+    contentType: string;
     file: File;
+
     parentPath: string;
     /** Passed by upload manager so this machine can notify when it finishes. */
     parentRef?: UploadManagerRef;
