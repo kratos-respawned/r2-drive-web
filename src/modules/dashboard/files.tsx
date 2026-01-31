@@ -10,6 +10,6 @@ export const FileView = ({ file }: { file: FileObject }) => {
     case FileType.FOLDER:
       return <Folder path={file.path} id={file.id} name={file.name} />;
     default:
-      return <GenericFile name={file.name} id={file.id} path={file.path} type={fileType} />;
+      return <GenericFile name={file.name} id={file.id} type={fileType} sizeInKB={file.size} />;
   }
 };

@@ -1,5 +1,4 @@
 import { FilesAPI } from "@/api/files/api";
-import { queryClient } from "@/App";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -7,20 +6,15 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import { Input } from "@/components/ui/input";
+import { queryClient } from "@/lib/query";
 import { cn } from "@/lib/utils";
-import {
-  RiFile2Fill,
-  RiFileTextFill,
-  RiImage2Fill,
-  RiMusic2Fill,
-  RiVideoFill,
-} from "@remixicon/react";
 import { useMutation } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import {
   downloadFileFromFileId,
-  FileType,
+  getFileIconFromFileType,
+  getFileSize,
+  openFileFromFileId,
   openFileInNewTabFromFileId,
   type FileTypeEnum,
 } from "./fs-utils";
@@ -29,22 +23,20 @@ import { useFolderStructure } from "./hooks/use-folder-structure";
 export const GenericFile = ({
   name,
   id,
-  path,
   type,
+  sizeInKB,
 }: {
-  path: string;
   name: string;
   id: number;
   type: FileTypeEnum;
+  sizeInKB: number;
 }) => {
   const folderStructure = useFolderStructure();
-  const url = path.replace(/^\/+|\/+$/g, "");
 
   const [isRenaming, setIsRenaming] = useState(false);
   const [newName, setNewName] = useState(name);
   const renameRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
-  const navigate = useNavigate();
 
   const deleteFile = useMutation({
     mutationFn: async () => {
@@ -63,10 +55,11 @@ export const GenericFile = ({
     },
   });
 
-  const openFolder = () => {
+  const openFile = () => {
     if (isRenaming || deleteFile.isPending) {
       return;
     }
+    openFileFromFileId(id);
   };
 
   useEffect(() => {
@@ -97,53 +90,47 @@ export const GenericFile = ({
       <ContextMenuTrigger>
         <div
           tabIndex={isRenaming ? undefined : 1}
-          onDoubleClick={openFolder}
           className={cn(
-            "flex flex-col items-start  w-20  group  p-1",
-            !isRenaming && "focus:ring ring-primary focus:bg-secondary hover:bg-muted",
+            "group relative aspect-square border border-black dark:border-white p-4 flex flex-col justify-between bg-white dark:bg-zinc-900 hover:bg-orange-50 dark:hover:bg-zinc-800 transition-all cursor-pointer hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[6px_6px_0px_0px_rgba(255,255,255,1)] hover:-translate-y-1",
           )}
         >
-          {type === FileType.IMAGE && (
-            <RiImage2Fill className={cn("w-16 h-16  ", deleteFile.isPending && "animate-pulse")} />
-          )}
-          {type === FileType.VIDEO && (
-            <RiVideoFill className={cn("w-16 h-16  ", deleteFile.isPending && "animate-pulse")} />
-          )}
-          {type === FileType.AUDIO && (
-            <RiMusic2Fill className={cn("w-16 h-16  ", deleteFile.isPending && "animate-pulse")} />
-          )}
-          {type === FileType.DOCUMENT && (
-            <RiFileTextFill
-              className={cn("w-16 h-16  ", deleteFile.isPending && "animate-pulse")}
-            />
-          )}
-          {type === FileType.OTHER && (
-            <RiFile2Fill className={cn("w-16 h-16  ", deleteFile.isPending && "animate-pulse")} />
-          )}
-          {isRenaming ? (
-            <div ref={renameRef}>
-              <Input
-                ref={inputRef}
-                className="h-6"
-                type="text"
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                onKeyDown={(e) => {
-                  console.log(e.key);
-                  if (e.key === "Enter" || e.key === "Escape") {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    renameFile.mutate();
-                    setIsRenaming(false);
-                  }
-                }}
-              />
-            </div>
-          ) : (
-            <span className={cn("text-xs truncate ", renameFile.isPending && "animate-pulse")}>
-              {name.length > 6 ? name.slice(0, 6) + "..." : name}
-            </span>
-          )}
+          <div className="flex justify-center items-center grow">
+            {getFileIconFromFileType(type, {
+              className: cn(
+                " text-primary drop-shadow-md size-20 ",
+                deleteFile.isPending ? "animate-pulse" : "",
+              ),
+            })}
+          </div>
+          <div className="mt-3 border-t border-gray-100 dark:border-gray-800 pt-3 group-hover:border-black/10 dark:group-hover:border-white/10">
+            {isRenaming ? (
+              <div ref={renameRef} className="max-w-[130px] h-[15px]">
+                <Input
+                  ref={inputRef}
+                  className=" w-full px-0 py-0 max-h-[15px] block"
+                  type="text"
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  onKeyDown={(e) => {
+                    console.log(e.key);
+                    if (e.key === "Enter" || e.key === "Escape") {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      renameFile.mutate();
+                      setIsRenaming(false);
+                    }
+                  }}
+                />
+              </div>
+            ) : (
+              <p className="text-xs truncate font-bold" title="Design Assets">
+                {name.length > 15 ? name.slice(0, 15) + "..." : name}
+              </p>
+            )}
+            <p className="text-[10px] text-gray-500 mt-1 uppercase tracking-wide">
+              {getFileSize(sizeInKB)} • {type}
+            </p>
+          </div>
         </div>
       </ContextMenuTrigger>
       <ContextMenuContent>

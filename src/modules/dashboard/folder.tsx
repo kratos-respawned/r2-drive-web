@@ -1,5 +1,4 @@
 import { FilesAPI } from "@/api/files/api";
-import { queryClient } from "@/App";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -7,6 +6,7 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import { Input } from "@/components/ui/input";
+import { queryClient } from "@/lib/query";
 import { cn } from "@/lib/utils";
 import { RiFolder3Fill } from "@remixicon/react";
 import { useMutation } from "@tanstack/react-query";
@@ -32,7 +32,7 @@ export const Folder = ({ name, id, path }: { path: string; name: string; id: num
       queryClient.invalidateQueries({ queryKey: FilesAPI.listFiles.key(folderStructure) });
     },
   });
-  const updateFile = useMutation({
+  const renameFolder = useMutation({
     mutationFn: async () => {
       await FilesAPI.updateFile({ id, name: newName.trim(), parentPath: folderStructure });
     },
@@ -81,35 +81,44 @@ export const Folder = ({ name, id, path }: { path: string; name: string; id: num
           tabIndex={isRenaming ? undefined : 1}
           onDoubleClick={openFolder}
           className={cn(
-            "flex flex-col items-start  w-20  group  p-1",
-            !isRenaming && "focus:ring ring-primary focus:bg-secondary hover:bg-muted",
+            "w-[164px] h-[173px] group relative aspect-square border border-black dark:border-white p-4 flex flex-col justify-between bg-white dark:bg-zinc-900 hover:bg-orange-50 dark:hover:bg-zinc-800 transition-all cursor-pointer hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[6px_6px_0px_0px_rgba(255,255,255,1)] hover:-translate-y-1",
           )}
         >
-          <RiFolder3Fill className={cn("w-16 h-16  ", deleteFolder.isPending && "animate-pulse")} />
-          {isRenaming ? (
-            <div ref={renameRef}>
-              <Input
-                ref={inputRef}
-                className="h-6"
-                type="text"
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                onKeyDown={(e) => {
-                  console.log(e.key);
-                  if (e.key === "Enter" || e.key === "Escape") {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    updateFile.mutate();
-                    setIsRenaming(false);
-                  }
-                }}
-              />
-            </div>
-          ) : (
-            <span className={cn("text-xs truncate ", updateFile.isPending && "animate-pulse")}>
-              {name.length > 6 ? name.slice(0, 6) + "..." : name}
-            </span>
-          )}
+          <div className="flex justify-center items-center grow">
+            <RiFolder3Fill
+              className={cn(
+                " text-primary drop-shadow-md size-20 ",
+                renameFolder.isPending ? "animate-pulse" : "",
+              )}
+            />
+          </div>
+          <div className="mt-3 border-t border-gray-100 dark:border-gray-800 pt-3 group-hover:border-black/10 dark:group-hover:border-white/10">
+            {isRenaming ? (
+              <div ref={renameRef} className="max-w-[130px] h-[15px]">
+                <Input
+                  ref={inputRef}
+                  className=" w-full px-0 py-0 max-h-[15px] block"
+                  type="text"
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  onKeyDown={(e) => {
+                    console.log(e.key);
+                    if (e.key === "Enter" || e.key === "Escape") {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      renameFolder.mutate();
+                      setIsRenaming(false);
+                    }
+                  }}
+                />
+              </div>
+            ) : (
+              <p className="text-xs truncate font-bold" title="Design Assets">
+                {name.length > 15 ? name.slice(0, 15) + "..." : name}
+              </p>
+            )}
+            <p className="text-[10px] text-gray-500 mt-1 uppercase tracking-wide">12 files</p>
+          </div>
         </div>
       </ContextMenuTrigger>
       <ContextMenuContent>

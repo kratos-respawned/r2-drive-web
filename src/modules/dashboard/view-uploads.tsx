@@ -1,5 +1,4 @@
 import { FilesAPI } from "@/api/files/api";
-import { queryClient } from "@/App";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import {
@@ -20,23 +19,26 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
-import { RiArrowDownLine, RiFileUploadLine, RiFolderAddLine } from "@remixicon/react";
+import { queryClient } from "@/lib/query";
+import {
+  RiArrowDownSFill,
+  RiFileUploadLine,
+  RiFolderAddLine,
+  RiUploadCloudFill,
+} from "@remixicon/react";
 import { useMutation } from "@tanstack/react-query";
 
-import { Progress } from "@/components/ui/progress";
+import { Link } from "@tanstack/react-router";
 import { useRef, useState } from "react";
-import { toast } from "sonner";
-import { useFileUpload } from "./hooks/use-file-upload";
+
+import { useMachine } from "@xstate/react";
 import { useFolderStructure } from "./hooks/use-folder-structure";
+import { uploadManagerMachine } from "./store/upload-manager.machine";
 
 export const NewFolder = () => {
   const folderStructure = useFolderStructure();
-  const { upload, isUploading, progress, reset } = useFileUpload({
-    parentPath: folderStructure,
-    onError: (error) => {
-      toast.error(error);
-    },
-  });
+  const [, send] = useMachine(uploadManagerMachine);
+
   const [newFolderName, setNewFolderName] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -51,43 +53,15 @@ export const NewFolder = () => {
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    const file = files?.[0];
-    if (!file) return;
-    toast.promise(() => upload(file), {
-      loading: (
-        <div className=" flex flex-col gap-1">
-          Uploading {file.name}
-          <Progress value={progress} className="w-full h-2" />
-        </div>
-      ),
-      action: (
-        <Button variant="destructive" onClick={reset}>
-          Cancel
-        </Button>
-      ),
-      classNames: {
-        content: "flex-1",
-      },
+    const fileList = event.target.files;
+    if (!fileList || fileList.length === 0) return;
+    send({
+      type: "FILES_SELECTED",
+      files: Array.from(fileList),
+      parentPath: folderStructure,
     });
     event.target.value = "";
   };
-
-  // const handleFolderChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-  //   const files = event.target.files;
-  //   const file = files?.[0];
-  //   if (!file) return;
-  //   toast.promise(() => upload(file), {
-  //     loading: (
-  //       <div className=" flex flex-col gap-1">
-  //         Uploading {file.name}
-  //         <Progress value={progress} className="w-full h-2" />
-  //       </div>
-  //     ),
-  //   });
-  //   }
-  //   event.target.value = "";
-  // };
 
   const { mutate: createFolder, isPending } = useMutation({
     mutationFn: async () => {
@@ -105,22 +79,28 @@ export const NewFolder = () => {
   return (
     <>
       <ButtonGroup>
-        <Button disabled={isPending} onClick={() => setIsOpen(true)} className="!pl-2">
-          {isPending ? <Spinner /> : <RiFolderAddLine />}
-          New Folder
+        <Button className="pl-2!" asChild>
+          <Link to="/dashboard/uploads">
+            <RiUploadCloudFill />
+            View Uploads
+          </Link>
         </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button className="!pl-2">
-              <RiArrowDownLine />
+            <Button className="pl-2!">
+              <RiArrowDownSFill />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-44">
-            <DropdownMenuItem onClick={handleFileUpload} disabled={isUploading}>
+            <DropdownMenuItem onClick={() => setIsOpen(true)}>
+              <RiFolderAddLine />
+              New Folder
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleFileUpload}>
               <RiFileUploadLine />
               File Upload
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleFolderUpload} disabled={isUploading}>
+            <DropdownMenuItem onClick={handleFolderUpload}>
               <RiFolderAddLine />
               Folder Upload
             </DropdownMenuItem>

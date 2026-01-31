@@ -7,22 +7,16 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
-import { Progress } from "@/components/ui/progress";
-import { Spinner } from "@/components/ui/spinner";
 import { RiFileUploadLine, RiFolder3Fill } from "@remixicon/react";
 import { useRef } from "react";
-import { toast } from "sonner";
-import { useFileUpload } from "./hooks/use-file-upload";
+
+import { useMachine } from "@xstate/react";
 import { useFolderStructure } from "./hooks/use-folder-structure";
+import { uploadManagerMachine } from "./store/upload-manager.machine";
 
 export const EmptyFolder = () => {
   const folderStructure = useFolderStructure();
-  const { upload, isUploading, progress, reset } = useFileUpload({
-    parentPath: folderStructure,
-    onError: (error) => {
-      toast.error(error);
-    },
-  });
+  const [, send] = useMachine(uploadManagerMachine);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleUploadFile = () => {
@@ -30,24 +24,12 @@ export const EmptyFolder = () => {
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    const file = files?.[0];
-    if (!file) return;
-    toast.promise(() => upload(file), {
-      loading: (
-        <div className=" flex flex-col gap-1">
-          Uploading {file.name}
-          <Progress value={progress} className="w-full h-2" />
-        </div>
-      ),
-      action: (
-        <Button variant="destructive" onClick={reset}>
-          Cancel
-        </Button>
-      ),
-      classNames: {
-        content: "flex-1",
-      },
+    const fileList = event.target.files;
+    if (!fileList || fileList.length === 0) return;
+    send({
+      type: "FILES_SELECTED",
+      files: Array.from(fileList),
+      parentPath: folderStructure,
     });
     event.target.value = "";
   };
@@ -71,9 +53,9 @@ export const EmptyFolder = () => {
           multiple
           className="hidden"
         />
-        <Button variant="outline" onClick={handleUploadFile} disabled={isUploading}>
+        <Button variant="outline" onClick={handleUploadFile}>
           <RiFileUploadLine />
-          {isUploading ? <Spinner /> : "Upload File"}
+          Upload File
         </Button>
       </EmptyContent>
     </Empty>

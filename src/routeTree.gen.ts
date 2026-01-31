@@ -13,6 +13,7 @@ import { Route as Not_foundRouteImport } from './routes/not_found'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DashboardUploadsRouteImport } from './routes/dashboard/uploads'
 import { Route as DashboardSplatRouteImport } from './routes/dashboard/$'
 import { Route as AuthSignupRouteImport } from './routes/auth/signup'
 import { Route as AuthResetPasswordRouteImport } from './routes/auth/reset-password'
@@ -37,6 +38,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardUploadsRoute = DashboardUploadsRouteImport.update({
+  id: '/uploads',
+  path: '/uploads',
+  getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardSplatRoute = DashboardSplatRouteImport.update({
   id: '/$',
@@ -68,6 +74,7 @@ export interface FileRoutesByFullPath {
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/signup': typeof AuthSignupRoute
   '/dashboard/$': typeof DashboardSplatRoute
+  '/dashboard/uploads': typeof DashboardUploadsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -78,6 +85,7 @@ export interface FileRoutesByTo {
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/signup': typeof AuthSignupRoute
   '/dashboard/$': typeof DashboardSplatRoute
+  '/dashboard/uploads': typeof DashboardUploadsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -89,6 +97,7 @@ export interface FileRoutesById {
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/signup': typeof AuthSignupRoute
   '/dashboard/$': typeof DashboardSplatRoute
+  '/dashboard/uploads': typeof DashboardUploadsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -101,6 +110,7 @@ export interface FileRouteTypes {
     | '/auth/reset-password'
     | '/auth/signup'
     | '/dashboard/$'
+    | '/dashboard/uploads'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -111,6 +121,7 @@ export interface FileRouteTypes {
     | '/auth/reset-password'
     | '/auth/signup'
     | '/dashboard/$'
+    | '/dashboard/uploads'
   id:
     | '__root__'
     | '/'
@@ -121,6 +132,7 @@ export interface FileRouteTypes {
     | '/auth/reset-password'
     | '/auth/signup'
     | '/dashboard/$'
+    | '/dashboard/uploads'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -163,6 +175,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard/uploads': {
+      id: '/dashboard/uploads'
+      path: '/uploads'
+      fullPath: '/dashboard/uploads'
+      preLoaderRoute: typeof DashboardUploadsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/$': {
       id: '/dashboard/$'
       path: '/$'
@@ -196,10 +215,12 @@ declare module '@tanstack/react-router' {
 
 interface DashboardRouteChildren {
   DashboardSplatRoute: typeof DashboardSplatRoute
+  DashboardUploadsRoute: typeof DashboardUploadsRoute
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardSplatRoute: DashboardSplatRoute,
+  DashboardUploadsRoute: DashboardUploadsRoute,
 }
 
 const DashboardRouteWithChildren = DashboardRoute._addFileChildren(

@@ -1,7 +1,13 @@
-import { useParams } from "@tanstack/react-router";
+import { useLocation } from "@tanstack/react-router";
 
 export const useFolderStructure = () => {
-  const { _splat } = useParams({ from: "/dashboard/$" });
-  if (!_splat) return "";
-  else return _splat.charAt(-1) === "/" ? _splat.slice(0, -1) : _splat;
+  const { pathname } = useLocation();
+  const pathnameParts = pathname.split("/").filter(Boolean);
+  if (pathnameParts.at(0) !== "dashboard") {
+    throw new Error("Path is not a dashboard path");
+  }
+  pathnameParts.shift();
+  const newPath = pathnameParts.join("/");
+  console.log({ newPath });
+  return newPath;
 };

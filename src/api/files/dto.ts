@@ -90,4 +90,3 @@ export interface SuccessResponse {
 export interface GetFileUrlResponse {
   url: string;
 }
-

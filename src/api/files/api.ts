@@ -26,12 +26,10 @@ import type {
   GetUploadUrlResponse,
   ListFilesResponse,
   SuccessResponse,
-  UpdateFileRequest
+  UpdateFileRequest,
 } from "./dto";
 
 export type UploadProgressCallback = (progress: AxiosProgressEvent) => void;
-
-
 
 export class FilesAPI {
   /**
@@ -47,7 +45,7 @@ export class FilesAPI {
       });
       return response.data;
     },
-  }
+  };
 
   /**
    * Get a presigned URL for uploading a file to R2
@@ -57,9 +55,8 @@ export class FilesAPI {
    */
   static async getUploadUrl(
     request: GetUploadUrlRequest,
-    signal?: AbortSignal
+    signal?: AbortSignal,
   ): Promise<GetUploadUrlResponse> {
-
     const response = await apiClient.post<GetUploadUrlResponse>(
       "/api/files/upload-url",
       {
@@ -68,7 +65,7 @@ export class FilesAPI {
         size: request.size,
         parentPath: request.parentPath ?? "",
       },
-      signal ? { signal: signal } : undefined
+      signal ? { signal: signal } : undefined,
     );
     return response.data;
   }
@@ -85,7 +82,7 @@ export class FilesAPI {
     uploadUrl: string,
     file: File,
     onUploadProgress?: UploadProgressCallback,
-    signal?: AbortSignal
+    signal?: AbortSignal,
   ): Promise<void> {
     await apiClient.put(uploadUrl, file, {
       headers: {
@@ -103,14 +100,18 @@ export class FilesAPI {
    * @returns Promise resolving to the created file object
    */
   static async createFile(request: CreateFileRequest, signal?: AbortSignal): Promise<FileObject> {
-    const response = await apiClient.post<FileObject>("/api/files", {
-      key: request.key,
-      name: request.name,
-      contentType: request.contentType,
-      size: request.size,
-      parentPath: request.parentPath ?? "",
-      thumbnail: request.thumbnail ?? null,
-    }, signal ? { signal: signal } : undefined);
+    const response = await apiClient.post<FileObject>(
+      "/api/files",
+      {
+        key: request.key,
+        name: request.name,
+        contentType: request.contentType,
+        size: request.size,
+        parentPath: request.parentPath ?? "",
+        thumbnail: request.thumbnail ?? null,
+      },
+      signal ? { signal: signal } : undefined,
+    );
     return response.data;
   }
 
@@ -127,28 +128,32 @@ export class FilesAPI {
     parentPath?: string,
     thumbnail?: string | null,
     onUploadProgress?: UploadProgressCallback,
-    signal?: AbortSignal
+    signal?: AbortSignal,
   ): Promise<FileObject> {
     // Step 1: Get presigned URL
-    const { url, key } = await this.getUploadUrl({
-      name: file.name,
-      contentType: file.type,
-      size: file.size,
-      parentPath,
-    }, signal);
-
+    const { url, key } = await this.getUploadUrl(
+      {
+        name: file.name,
+        contentType: file.type,
+        size: file.size,
+        parentPath,
+      },
+      signal,
+    );
     // Step 2: Upload to R2
     await this.uploadFile(url, file, onUploadProgress, signal);
-
     // Step 3: Create file record
-    return this.createFile({
-      key,
-      name: file.name,
-      contentType: file.type,
-      size: file.size,
-      parentPath,
-      thumbnail,
-    }, signal);
+    return this.createFile(
+      {
+        key,
+        name: file.name,
+        contentType: file.type,
+        size: file.size,
+        parentPath,
+        thumbnail,
+      },
+      signal,
+    );
   }
 
   /**
@@ -157,9 +162,7 @@ export class FilesAPI {
    * @returns Promise resolving to success message
    */
   static async deleteFile(id: number): Promise<SuccessResponse> {
-    const response = await apiClient.delete<SuccessResponse>(
-      `/api/files/${id}`
-    );
+    const response = await apiClient.delete<SuccessResponse>(`/api/files/${id}`);
     return response.data;
   }
 
@@ -169,19 +172,16 @@ export class FilesAPI {
    * @returns Promise resolving to success message
    */
   static async updateFile(request: UpdateFileRequest): Promise<SuccessResponse> {
-    const response = await apiClient.put<SuccessResponse>(
-      `/api/files/${request.id}`,
-      {
-        id: request.id,
-        name: request.name,
-        parentPath: request.parentPath,
-      }
-    );
+    const response = await apiClient.put<SuccessResponse>(`/api/files/${request.id}`, {
+      id: request.id,
+      name: request.name,
+      parentPath: request.parentPath,
+    });
     return response.data;
   }
 
   /**
-   * 
+   *
    * @param id The file ID
    * @returns Promise resolving to the file URL
    */

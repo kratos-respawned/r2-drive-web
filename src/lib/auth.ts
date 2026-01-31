@@ -1,7 +1,7 @@
 import { createAuthClient } from "better-auth/react";
 
 export const authClient = createAuthClient({
-    baseURL: "http://localhost:8787",
+  baseURL: "http://localhost:8787",
 });
 
 export type Session = typeof authClient.$Infer.Session;
