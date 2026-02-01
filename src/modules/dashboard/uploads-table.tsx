@@ -7,7 +7,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { getFileIconFromFileType, getFileSize } from "./fs-utils";
+import { cn } from "@/lib/utils";
+import { FileIconFromFileType, getFileSize, getFileSizeInKB, getFileType } from "./fs-utils";
 import { useUploadItemActor } from "./hooks/use-upload-item-actor";
 import { useUploadStore, type UploadActorRef } from "./store/upload-store";
 
@@ -26,24 +27,27 @@ export const UploadsTable = () => {
       </TableHeader>
       <TableBody>
         {entries.map(([id, actor]) => (
-          <UploadRow key={id} id={id} actor={actor} />
+          <UploadRow key={id} actor={actor} />
         ))}
       </TableBody>
     </Table>
   );
 };
 
-const UploadRow = ({ id, actor }: { id: string; actor: UploadActorRef }) => {
+const UploadRow = ({ actor }: { actor: UploadActorRef }) => {
   const upload = useUploadItemActor(actor);
   return (
     <TableRow className="">
       <TableCell className="font-medium">
         <div className="max-w-[300px] truncate flex items-center gap-2">
-          {getFileIconFromFileType("audio", { className: "size-4 shrink-0" })}
+          <FileIconFromFileType
+            fileType={getFileType(upload.contentType)}
+            className={cn("drop-shadow-md size-4 shrink-0")}
+          />
           <span>{upload.name}</span>
         </div>
       </TableCell>
-      <TableCell>{getFileSize(1024)}</TableCell>
+      <TableCell>{getFileSize(getFileSizeInKB(upload.size))}</TableCell>
       <TableCell>
         <div className="max-w-xs">
           <div className="flex justify-between gap-2">

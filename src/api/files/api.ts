@@ -26,7 +26,7 @@ import type {
   GetUploadUrlResponse,
   ListFilesResponse,
   SuccessResponse,
-  UpdateFileRequest,
+  UpdateFileRequest
 } from "./dto";
 
 export type UploadProgressCallback = (progress: AxiosProgressEvent) => void;
@@ -64,6 +64,7 @@ export class FilesAPI {
         contentType: request.contentType,
         size: request.size,
         parentPath: request.parentPath ?? "",
+        thumbnail: request.thumbnail
       },
       signal ? { signal: signal } : undefined,
     );
@@ -108,7 +109,6 @@ export class FilesAPI {
         contentType: request.contentType,
         size: request.size,
         parentPath: request.parentPath ?? "",
-        thumbnail: request.thumbnail ?? null,
       },
       signal ? { signal: signal } : undefined,
     );
@@ -126,21 +126,28 @@ export class FilesAPI {
   static async uploadFileComplete(
     file: File,
     parentPath?: string,
-    thumbnail?: string | null,
+    thumbnail?: File | null,
     onUploadProgress?: UploadProgressCallback,
     signal?: AbortSignal,
   ): Promise<FileObject> {
     // Step 1: Get presigned URL
-    const { url, key } = await this.getUploadUrl(
+    const { url, key, thumbnailUrl } = await this.getUploadUrl(
       {
         name: file.name,
         contentType: file.type,
         size: file.size,
         parentPath,
+        thumbnail: thumbnail ? {
+          size: thumbnail.size,
+          contentType: thumbnail.type,
+        } : null,
       },
       signal,
     );
     // Step 2: Upload to R2
+    if (thumbnailUrl && thumbnail) {
+      await this.uploadFile(thumbnailUrl, thumbnail, undefined, signal);
+    }
     await this.uploadFile(url, file, onUploadProgress, signal);
     // Step 3: Create file record
     return this.createFile(
@@ -150,7 +157,6 @@ export class FilesAPI {
         contentType: file.type,
         size: file.size,
         parentPath,
-        thumbnail,
       },
       signal,
     );
@@ -202,4 +208,5 @@ export class FilesAPI {
     });
     return response.data;
   }
+
 }

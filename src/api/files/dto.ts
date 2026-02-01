@@ -29,11 +29,16 @@ export interface ListFilesResponse {
 /**
  * Request payload for getting an upload URL
  */
+
 export interface GetUploadUrlRequest {
   name: string;
   contentType: string;
   size: number;
   parentPath?: string;
+  thumbnail?: {
+    size: number,
+    contentType: string,
+  } | null;
 }
 
 /**
@@ -42,6 +47,7 @@ export interface GetUploadUrlRequest {
 export interface GetUploadUrlResponse {
   url: string;
   key: string;
+  thumbnailUrl?: string | null;
 }
 
 /**
@@ -53,7 +59,6 @@ export interface CreateFileRequest {
   contentType: string;
   size: number;
   parentPath?: string;
-  thumbnail?: string | null;
 }
 
 /**
@@ -90,3 +95,8 @@ export interface SuccessResponse {
 export interface GetFileUrlResponse {
   url: string;
 }
+
+export interface GetThumbnailRequest {
+  id: string;
+}
+

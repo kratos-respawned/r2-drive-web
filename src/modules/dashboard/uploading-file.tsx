@@ -7,13 +7,15 @@ import {
 import { GridProgress } from "@/components/ui/grid-progress";
 import { cn } from "@/lib/utils";
 import { RiRestartLine } from "@remixicon/react";
-import { getFileIconFromFileType, getFileType } from "./fs-utils";
+import { FileIconFromFileType, getFileType } from "./fs-utils";
+import { useFolderStructure } from "./hooks/use-folder-structure";
 import { useUploadItemActor } from "./hooks/use-upload-item-actor";
 import type { UploadActorRef } from "./store/upload-store";
 
 export const UploadingFile = ({ actor }: { actor: UploadActorRef }) => {
   const upload = useUploadItemActor(actor);
-  if (upload.isSuccess) return null;
+  const path = useFolderStructure();
+  if (upload.isSuccess || upload.parentPath !== path) return null;
   return (
     <ContextMenu>
       <ContextMenuTrigger>
@@ -28,10 +30,12 @@ export const UploadingFile = ({ actor }: { actor: UploadActorRef }) => {
             {upload.isError ? (
               <RiRestartLine className="size-16" />
             ) : (
-              getFileIconFromFileType(getFileType(upload.contentType), {
-                className: cn("drop-shadow-md size-16 animate-pulse"),
-              })
+              <FileIconFromFileType
+                fileType={getFileType(upload.contentType)}
+                className={cn("drop-shadow-md size-16 animate-pulse")}
+              />
             )}
+
             <GridProgress
               progress={upload.isError ? 25 : upload.progress}
               count={10}

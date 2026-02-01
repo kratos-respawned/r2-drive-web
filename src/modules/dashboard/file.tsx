@@ -6,13 +6,15 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import { Input } from "@/components/ui/input";
+import { getThumbnailUrl } from "@/lib/generate-thumb";
 import { queryClient } from "@/lib/query";
 import { cn } from "@/lib/utils";
 import { useMutation } from "@tanstack/react-query";
+import { Avatar as AvatarPrimitive } from "radix-ui";
 import { useEffect, useRef, useState } from "react";
 import {
   downloadFileFromFileId,
-  getFileIconFromFileType,
+  FileIconFromFileType,
   getFileSize,
   openFileFromFileId,
   openFileInNewTabFromFileId,
@@ -25,11 +27,13 @@ export const GenericFile = ({
   id,
   type,
   sizeInKB,
+  thumbnail,
 }: {
   name: string;
   id: number;
   type: FileTypeEnum;
   sizeInKB: number;
+  thumbnail: string | null;
 }) => {
   const folderStructure = useFolderStructure();
 
@@ -94,13 +98,25 @@ export const GenericFile = ({
             "group w-[164px] h-[173px] relative aspect-square border border-black dark:border-white p-4 flex flex-col justify-between bg-white dark:bg-zinc-900 hover:bg-orange-50 dark:hover:bg-zinc-800 transition-all cursor-pointer hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[6px_6px_0px_0px_rgba(255,255,255,1)] hover:-translate-y-1",
           )}
         >
-          <div className="flex justify-center items-center grow">
-            {getFileIconFromFileType(type, {
-              className: cn(
-                "  drop-shadow-md size-20 ",
-                deleteFile.isPending ? "animate-pulse" : "",
-              ),
-            })}
+          <div onDoubleClick={openFile} className="flex justify-center items-center grow">
+            <AvatarPrimitive.Root>
+              {thumbnail && (
+                <AvatarPrimitive.Image
+                  src={getThumbnailUrl(thumbnail)}
+                  alt={name}
+                  className="size-20 object-cover"
+                />
+              )}
+              <AvatarPrimitive.Fallback>
+                <FileIconFromFileType
+                  fileType={type}
+                  className={cn(
+                    "drop-shadow-md size-20",
+                    deleteFile.isPending ? "animate-pulse" : "",
+                  )}
+                />
+              </AvatarPrimitive.Fallback>
+            </AvatarPrimitive.Root>
           </div>
           <div className="mt-3 border-t border-gray-100 dark:border-gray-800 pt-3 group-hover:border-black/10 dark:group-hover:border-white/10">
             {isRenaming ? (

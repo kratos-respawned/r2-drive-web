@@ -45,8 +45,6 @@ export const uploadManagerMachine = setup({
           id,
           input: {
             id,
-            name: file.name,
-            contentType: file.type,
             file,
             parentPath: event.parentPath,
             parentRef: self,
@@ -85,7 +83,7 @@ export const uploadManagerMachine = setup({
     }),
   },
 }).createMachine({
-  /** @xstate-layout N4IgpgJg5mDOIC5QFcAOAbA9gQwgWWwDtsYAnAOgEsJ0wBiAMQEkAZAUQGUB9Dt9gYQAqbACIBtAAwBdRKFSZYlAC6VMhWSAAeiACwBGcgE5jJ06YA0IAJ6IAHAYCsE5xP0BmAOxu3ANkM+AXyDLQkwIOA00LFwCYjINeUUVNQ1tBABaH3IXHNznD0sbDMCAyyicfCISMApqWgSFZVV1JC1EQwMfNwAmW26dCVtDWx8dYcLEPT6jBzc9Nx1ujvnXWyCgoA */
+  /** @xstate-layout N4IgpgJg5mDOIC5QFcAOAbA9gQwgWWwDtsYAnAOgEsJ0wBiAMQEkAZAUQGUB9Dt9gYQAqbACIBtAAwBdRKFSZYlAC6VMhWSAAeiACwBGcgE5jJ06YA0IAJ6IAHAYCsE5xP0BmAOxu3ANkM+AXwDLNCxcAmIyKhp6AFUABRYAeQBBES5mADkmDgAJUUkZJBB5RRU1DRsEPVsAJiMHNz03HVrDPWbXW0ttBFqPB3Jm2rqdCVtDWx8HIOCQQkwIOA1QnHwiEjBSDVLlVXVi3oBaH3IXc4vnD0sqo8GzBynanx83V1qgkIw1iM2KaloOwUewqh0Q7XIrxGelqOjMxhuiDebiMeh89gmtQcHW8swCQA */
 
   id: "uploadManager",
   initial: "idle",

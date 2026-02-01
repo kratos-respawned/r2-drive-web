@@ -10,8 +10,10 @@ export function useUploadItemActor(actorRef: UploadActorRef) {
   };
   return {
     send: actorRef.send,
-    name: useSelector(actorRef, (s) => s.context.name),
-    contentType: useSelector(actorRef, (s) => s.context.contentType),
+    size: useSelector(actorRef, (s) => s.context.file.size),
+    parentPath: useSelector(actorRef, (s) => s.context.parentPath),
+    name: useSelector(actorRef, (s) => s.context.file.name),
+    contentType: useSelector(actorRef, (s) => s.context.file.type),
     progress: useSelector(actorRef, (s) => s.context.uploadProgress),
     error: useSelector(actorRef, (s) => (s.matches("error") ? s.context.error : undefined)),
     isPending: useSelector(actorRef, (s) => s.matches("pending")),

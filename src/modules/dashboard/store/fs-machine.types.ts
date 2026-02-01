@@ -38,6 +38,7 @@ export interface UploadMachineContext {
     abortController?: AbortController;
     /** Used to notify manager when this upload finishes (success or error). */
     parentRef?: UploadManagerRef;
+    thumbnail?: File | null;
 }
 
 // State Machine Events
@@ -52,6 +53,7 @@ export type UploadMachineEvent =
 // State type union for type-safe state checking
 export type UploadMachineState =
     | { value: "pending"; context: UploadMachineContext }
+    | { value: "preparing"; context: UploadMachineContext }
     | { value: "uploading"; context: UploadMachineContext & { abortController: AbortController } }
     | { value: "success"; context: UploadMachineContext }
     | { value: "error"; context: UploadMachineContext & { error: string } };
@@ -61,8 +63,6 @@ export type UploadMachineState =
 // Input type for creating the machine
 export interface UploadMachineInput {
     id: string;
-    name: string;
-    contentType: string;
     file: File;
 
     parentPath: string;

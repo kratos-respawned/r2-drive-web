@@ -119,9 +119,10 @@ export const NewFolder = () => {
       <input
         type="file"
         ref={folderInputRef}
+        multiple
         onChange={handleFileChange}
-        // @ts-expect-error webkitdirectory is not in the type definitions
-        webkitdirectory=""
+        // @ts-expect-error directory is not in the type definitions
+        webkitdirectory
         className="hidden"
       />
 

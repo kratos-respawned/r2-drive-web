@@ -1,4 +1,5 @@
 import { FilesAPI } from "@/api/files/api";
+import { createCoverWebpThumbnail } from "@/lib/generate-thumb";
 import type { AxiosError, AxiosProgressEvent } from "axios";
 import { assign, fromPromise, setup } from "xstate";
 import { calculateUploadProgress } from "../fs-utils";
@@ -59,23 +60,27 @@ export const createUploadMachine = () => {
         await FilesAPI.uploadFileComplete(
           context.file,
           context.parentPath,
-          null,
+          context.thumbnail,
           onUploadProgress,
           abortSignal,
         );
+      }),
+      generateThumbnail: fromPromise<File | null, { file: File }>(async ({ input }) => {
+        const thumbnail = await createCoverWebpThumbnail(input.file, 256, 0.75);
+        return thumbnail;
       }),
     },
     guards: {
       canRetry: ({ context }) => context.error !== undefined,
     },
   }).createMachine({
-    /** @xstate-layout N4IgpgJg5mDOIC5QFcAOAbA9gQwgSQBcwBbAOlTADsIBLSqAYgGUAVAQQCUWBtABgF1EoVJlg0CNTJSEgAHogCMAViWkATAE4AbAA4A7EoA0IAJ6IALGoWk9AZiXmtvDVaVq9erQF8vxtFlxCElJ-HFp6BggpMFI6ADdMAGsY0NwmMAAnOJoAYzA+QSQQETEJKRl5BD1eVSt9I1NEHXN1O3MdBQN2rQVenz8MMKCyVPDGTIzMDPJ0bAIAMymRwbTM7LyCmRLxSWkiyurahXrjMwRzPR1Sc3Mley0unR6FfpBR4ZCVsYYABQ4AeQA4hwAKJMJibIrbMp7UCVG5qUg6Xg6JQaWwGU6IWxaRGaO5KB4OJ59XxvL4fUZ0RgAYTYADkaSCADKQ4SiHblfaIQ7qY6YxoIWxqK4otEdR7PV7vIhkCZTBiglgcACabOKHJhFR5NT5J0FnT0NjUWicRO6pLJlEwEDgMhlJC2mt22oQAFotFj3aoNL6NHoFESXB41EppRTZeQqGMnaUXdzzmovRdEYGlAp2pZlO5POGAvhI1T6LHObC5IgTVd0eZeKbzAoMbZtLYvSKtKR0-otBoVJ5lKa80NI7BkDk8rB4FDnVy4YgXIinOiBWcOh3eOuEcTni8yQ65RlJhkS1qE-PSIuMQ0zrZV7x+93Qxadz4gA */
+    /** @xstate-layout N4IgpgJg5mDOIC5QFcAOAbA9gQwgSQBcwBbAOlTADsIBLSqAYgGUAVAQQCUWBtABgF1EoVJlg0CNTJSEgAHogCMAViWkATAE4AbAA4A7EoA0IAJ6IALGoWk9AZiXmtvDVaVq9erQF8vxtFlxCElJ-HFp6BggpMFI6ADdMAGsY0NwmMAAnOJoAYzA+QSQQETEJKRl5BD1eVSt9I1NEHXN1O3MdBQN2rQVenz8MMKCyVPDGTIzMDPJ0bAIAMymRwbTM7LyCmRLxSWkiyurahXrjMwQlXh1SLTcdF2OVDT0db18QUeGQlbGGAAUOADyAHEOABRJhMTZFbZlPagSrmSykHSXJQaWwGU6IWxaNTqDRKexaLovPpvD5EZYBH4AYTYADkaaCADJQ4SiHblfaIQ7qY6YxoIWxqK6ojQdEk9BT9d7fT4TKYMMEsDgATTZxQ5sIqPJqfJOgs6ehsai0TmJDlJ0pllEwEDgMgpJC2Wt2OoQAFotFjPaoNP6CSL7r1eOY9DKnWQKNQ6FAXaU3dyEJYfWG8Qobgp2pZlO5PBG5ZSvtTY-HOXC5IhTVd0eZeGbzAoMbZtLYfSKtKQlPytASlJ5lGaC9TPrBkDk8rB4NDXVz4YgXHinOiBWcOl3eJvEWpLVLrQMR0WFRky9qk4vrs4MQ0zrZ17xB72d90yT4gA */
     id: "uploadItem",
     initial: "pending",
     context: ({ input }) => ({
       id: input.id,
-      name: input.name,
-      contentType: input.contentType,
+      name: input.file.name,
+      contentType: input.file.type,
       file: input.file,
       uploadProgress: 0,
       parentPath: input.parentPath,
@@ -87,8 +92,27 @@ export const createUploadMachine = () => {
       pending: {
         on: {
           START: {
-            target: "uploading",
+            target: "preparing",
             actions: ["initializeAbortController", "clearError", "resetProgress"],
+          },
+        },
+      },
+      preparing: {
+        invoke: {
+          id: "generateThumbnail",
+          src: "generateThumbnail",
+          input: ({ context }) => ({ file: context.file }),
+          onDone: {
+            target: "uploading",
+            actions: [
+              assign({
+                thumbnail: ({ event }) => event.output,
+              }),
+            ],
+          },
+          onError: {
+            target: "error",
+            actions: ["cleanupAbortController", "notifyParentFinished"],
           },
         },
       },

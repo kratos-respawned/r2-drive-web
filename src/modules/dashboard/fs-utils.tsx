@@ -33,23 +33,28 @@ const getFileUrlFromFileKey = async (fileId: number) => {
   return fileUrl.url;
 };
 
-export const getFileIconFromFileType = (
-  fileType: FileTypeEnum,
-  { className, ...props }: React.ComponentProps<RemixiconComponentType>,
-) => {
+export const FileIconFromFileType = ({
+  fileType,
+  className,
+  ...props
+}: {
+  fileType: FileTypeEnum;
+  className: string;
+  props?: React.ComponentProps<RemixiconComponentType>;
+}) => {
   switch (fileType) {
     case FileType.IMAGE:
-      return <RiImage2Fill className={cn("", className)} {...props} />;
+      return <RiImage2Fill className={cn(className)} {...props} />;
     case FileType.VIDEO:
-      return <RiVideoFill className={cn("", className)} {...props} />;
+      return <RiVideoFill className={cn(className)} {...props} />;
     case FileType.AUDIO:
-      return <RiMusic2Fill className={cn("", className)} {...props} />;
+      return <RiMusic2Fill className={cn(className)} {...props} />;
     case FileType.DOCUMENT:
-      return <RiFileTextFill className={cn("", className)} {...props} />;
+      return <RiFileTextFill className={cn(className)} {...props} />;
     case FileType.OTHER:
-      return <RiFile2Fill className={cn("", className)} {...props} />;
+      return <RiFile2Fill className={cn(className)} {...props} />;
     default:
-      return null;
+      return <></>;
   }
 };
 
@@ -86,4 +91,8 @@ export const getFileSize = (sizeInKB: number) => {
   if (size < 1024 * 1024) return `${(size / 1024).toFixed(2)} KB`;
   if (size < 1024 * 1024 * 1024) return `${(size / 1024 / 1024).toFixed(2)} MB`;
   return `${(size / 1024 / 1024 / 1024).toFixed(2)} GB`;
+};
+
+export const getFileSizeInKB = (sizeInKB: number) => {
+  return sizeInKB / 1024;
 };
